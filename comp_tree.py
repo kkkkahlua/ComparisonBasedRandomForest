@@ -16,18 +16,24 @@ class CompTree(object):
         left_idx = [i for i in range(n_data) if y[i] == 0]
         right_idx = [i for i in range(n_data) if i not in left_idx]
 
-        if left_idx is None:
+        assert left_idx + right_idx == n_data
+
+        print("left_idx:", left_idx, "right_idx", right_idx)
+
+        if left_idx:
             idx = random.sample(range(0, len(right_idx)-1), 2)
-            x0 = right_idx[idx[0]]
-            x1 = right_idx[idx[1]]
-        elif right_idx is None:
+            x0_idx = right_idx[idx[0]]
+            x1_idx = right_idx[idx[1]]
+        elif right_idx:
             idx = random.sample(range(0, len(left_idx)-1), 2)
-            x0 = left_idx[idx[0]]
-            x1 = left_idx[idx[0]]
+            x0_idx = left_idx[idx[0]]
+            x1_idx = left_idx[idx[0]]
         else:
-            x0 = left_idx[random.randint(0, len(left_idx)-1)]
-            x1 = right_idx[random.randint(0, len(right_idx)-1)]
-        return x0, x1
+            print(left_idx)
+            print(right_idx)
+            x0_idx = left_idx[random.randint(0, len(left_idx)-1)]
+            x1_idx = right_idx[random.randint(0, len(right_idx)-1)]
+        return x0_idx, x1_idx
 
     def separate_samples(self, X, x0, x1):
         left_idx = []
@@ -43,7 +49,9 @@ class CompTree(object):
         if X.shape[0] <= self.n0:
             return None
 
-        x0, x1 = self.pick_two_samples(y)
+        x0_idx, x1_idx = self.pick_two_samples(y)
+        x0 = X[x0_idx]
+        x1 = X[x1_idx]
 
         left_idx, right_idx = self.separate_samples(X, x0, x1)
 
@@ -69,7 +77,7 @@ class CompTree(object):
         return fre[-1][1]
 
     def average(self, leaf_node):
-        return sum(leaf_node.y) / leaf_node.y.shape[0]
+        return sum(leaf_node.y) / len(leaf_node.y)
 
     def predict(self, X):
         y_predict = []
@@ -79,5 +87,5 @@ class CompTree(object):
                 y_predict.append(self.vote(leaf_node))
             else:
                 y_predict.append(self.average(leaf_node))
-        return y_predict
+        return np.array(y_predict)
         

@@ -18,6 +18,7 @@ if __name__ == "__main__":
     n0_best = -1
     M_best = -1
     n_folds = 10
+    classes = 10
 
     # train: 
     # 10-fold CV
@@ -30,12 +31,12 @@ if __name__ == "__main__":
             cur_accuracy_list = []
 
             skf = StratifiedKFold(n_splits=n_folds)
-            cv = [(t, v) for (t, v) in skf.split(n_train, y_train)]
+            cv = [(t, v) for (t, v) in skf.split(range(n_train), y_train)]
 
             for k in range(n_folds):
                 train_idx, val_idx = cv[k]
 
-                comp_rf = CompRF(n0, M, r)
+                comp_rf = CompRF(n0, M, r, task="Classification", classes)
                 y_predict = comp_rf.predict_after_train(X_train[train_idx], y_train[train_idx], X_test[val_idx])
                 # comp_rf.fit_transform(X_train[train_idx], y_train[train_idx])
                 # y_predict = comp_rf.predict(X_train[val_idx])

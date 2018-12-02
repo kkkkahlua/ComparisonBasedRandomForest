@@ -1,11 +1,16 @@
+import numpy as np
+
 def CalcAccuracy(y_true, y_predict):
-    # TODO: calc
-    return 0
+    return np.sum(y_true == y_predict) / len(y_true)
 
 def MajorityVote(result):
-    # TODO: vote
-    return 0
+    # result: M x n_data
+    # ret: n_data
+    # TODO: rewrite
+    frequency = [np.sum(np.array(result) == i, i) for i in set(result)]
+    return frequency[-1][1]
 
 def euc_dist(x0, x1):
-    # TODO: calc
-    return 0
+    x0 = x0.flatten(order='C')
+    x1 = x1.flatten(order='C')
+    return sum((x0-x1) ** 2)
