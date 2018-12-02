@@ -3,6 +3,7 @@ from tree_node import TreeNode
 import random
 import numpy as np
 from utils import euc_dist
+from utils import vote_for_one
 
 class CompTree(object):
     def __init__(self, n0):
@@ -13,24 +14,20 @@ class CompTree(object):
     def pick_two_samples(self, y):
         n_data = y.shape[0]
 
-        left_idx = [i for i in range(n_data) if y[i] == 0]
+        left_idx = [i for i in range(n_data) if y[i] == y[0]]
         right_idx = [i for i in range(n_data) if i not in left_idx]
 
-        assert left_idx + right_idx == n_data
+        assert len(left_idx) + len(right_idx) == n_data
 
-        print("left_idx:", left_idx, "right_idx", right_idx)
-
-        if left_idx:
-            idx = random.sample(range(0, len(right_idx)-1), 2)
+        if not left_idx:
+            idx = random.sample(range(len(right_idx)), 2)
             x0_idx = right_idx[idx[0]]
             x1_idx = right_idx[idx[1]]
-        elif right_idx:
-            idx = random.sample(range(0, len(left_idx)-1), 2)
+        elif not right_idx:
+            idx = random.sample(range(len(left_idx)), 2)
             x0_idx = left_idx[idx[0]]
-            x1_idx = left_idx[idx[0]]
+            x1_idx = left_idx[idx[1]]
         else:
-            print(left_idx)
-            print(right_idx)
             x0_idx = left_idx[random.randint(0, len(left_idx)-1)]
             x1_idx = right_idx[random.randint(0, len(right_idx)-1)]
         return x0_idx, x1_idx
@@ -73,8 +70,7 @@ class CompTree(object):
         return node
     
     def vote(self, leaf_node):
-        fre = sorted([(np.sum(leaf_node.y == i), i) for i in set(leaf_node.y)])
-        return fre[-1][1]
+        return vote_for_one(leaf_node.y)
 
     def average(self, leaf_node):
         return sum(leaf_node.y) / len(leaf_node.y)
