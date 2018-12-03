@@ -1,4 +1,6 @@
+# -*- coding:utf-8 -*-
 import numpy as np
+import time
 from keras.datasets import mnist
 from sklearn.model_selection import StratifiedKFold
 from comp_rf import CompRF
@@ -38,17 +40,21 @@ if __name__ == "__main__":
                 train_idx, val_idx = cv[k]
 
                 comp_rf = CompRF(n0, M, r, "Classification", classes)
+
+                time_start = time.time()
                 y_predict = comp_rf.train_then_predict(X_train[train_idx], y_train[train_idx], X_train[val_idx])
+                time_end = time.time()
+
                 # comp_rf.fit_transform(X_train[train_idx], y_train[train_idx])
                 # y_predict = comp_rf.predict(X_train[val_idx])
                 cur_accuracy = calc_accuracy(y_train[val_idx], y_predict)
 
                 cur_accuracy_list.append(cur_accuracy)
 
-                print("(n0={0}, M={1}): fold={3}: {2}%".format(n0, M, cur_accuracy*100, k))
+                print("(n0={0}, M={1}, fold={3}): {2:.2f}% [time={4:.2f}]".format(n0, M, cur_accuracy*100, k, time_end-time_start))
 
             cur_accuracy = sum(cur_accuracy_list) / len(cur_accuracy_list)
-            print("(n0={0}, M={1}): average: {2}%".format(n0, M, cur_accuracy*100))
+            print("(n0={0}, M={1}, average): {2:.2f}%".format(n0, M, cur_accuracy*100))
             if cur_accuracy > accuracy:
                 accuracy = cur_accuracy
                 n0_best = n0

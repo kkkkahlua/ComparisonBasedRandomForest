@@ -31,9 +31,15 @@ def euc_dist(x0, x1):
     x1 = x1.flatten(order='C')
     return sum((x0-x1) ** 2)
 
+def closer(x0, x1, x2):
+    return euc_dist(x0, x1) <= euc_dist(x0, x2)
+
 def highest_proba(proba):
     n_test = proba.shape[0]
-    y_predict = np.shape(n_test)
+    y_predict = np.zeros(n_test)
     for i in range(n_test):
-        y_predict[i] = np.argmax(proba[i,:])
+        y_predict[i] = np.argmax(proba[i, :])
     return y_predict
+
+def average(y):
+    return sum(y) / len(y)

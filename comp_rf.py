@@ -60,7 +60,7 @@ class CompRF(object):
                 y_train_0 = np.zeros(X_train_0.shape[0])
                 y_train_1 = np.ones(X_train_1.shape[0])
                 X_train_01 = np.vstack((X_train_0, X_train_1))
-                y_train_01 = np.vstack((y_train_0, y_train_1))
+                y_train_01 = np.concatenate((y_train_0, y_train_1))
                 result = self.build_forest(X_train_01, y_train_01, X_test)  # prediction result of one forest, in the form of label, n_data x M
 
                 proba[:, cnt] = confidence_level(result)
