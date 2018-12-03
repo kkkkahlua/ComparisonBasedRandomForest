@@ -6,7 +6,8 @@ from utils import calc_accuracy
 
 if __name__ == "__main__":
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
-    X_train, y_train = X_train[:2000], y_train[:2000]
+    X_train, y_train = X_train[:200], y_train[:200]
+    X_test, y_test = X_test[:100], y_test[:100]
 
     n_train = X_train.shape[0]
 
@@ -17,7 +18,7 @@ if __name__ == "__main__":
     accuracy = -1
     n0_best = -1
     M_best = -1
-    n_folds = 10
+    n_folds = 3     # requirement: 10
     classes = 10
 
     # train: 
@@ -44,14 +45,16 @@ if __name__ == "__main__":
 
                 cur_accuracy_list.append(cur_accuracy)
 
-                print("foldwise: n0 = {0}, M = {1}, cur_accracy = {2}".format(n0, M, cur_accuracy))
+                print("(n0={0}, M={1}): fold={3}: {2}%".format(n0, M, cur_accuracy*100, k))
 
             cur_accuracy = sum(cur_accuracy_list) / len(cur_accuracy_list)
-            print("average: n0 = {0}, M = {1}, cur_accracy = {2}".format(n0, M, cur_accuracy))
+            print("(n0={0}, M={1}): average: {2}%".format(n0, M, cur_accuracy*100))
             if cur_accuracy > accuracy:
                 accuracy = cur_accuracy
                 n0_best = n0
                 M_best = M
+    
+    print("best_accuracy={0}%, best_n_0={1}, best_M={2}".format(accuracy*100, n0_best, M_best))
 
     # test:
     comp_rf = CompRF(n0_best, M_best, r)
@@ -59,3 +62,5 @@ if __name__ == "__main__":
     # comp_rf.fit_transform(X_train, y_train)
     # y_predict = comp_rf.predict(X_test)
     accuracy = calc_accuracy(y_test, y_predict)
+
+    print("accuracy: ", accuracy)

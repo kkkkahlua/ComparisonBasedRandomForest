@@ -44,7 +44,7 @@ class CompTree(object):
 
     def build_tree(self, X, y):
         if X.shape[0] <= self.n0:
-            return None
+            return TreeNode(X, y, None, None, None, None)
 
         x0_idx, x1_idx = self.pick_two_samples(y)
         x0 = X[x0_idx]
@@ -56,6 +56,7 @@ class CompTree(object):
         right_child = self.build_tree(X[right_idx], y[right_idx])
 
         return TreeNode(X, y, x0, x1, left_child, right_child)
+        # return TreeNode(X, y, x0, x1, left_child, right_child)
 
     def fit_transform(self, X, y):
         self.root = self.build_tree(X, y)
