@@ -1,13 +1,28 @@
 # -*- coding:utf-8 -*-
-import numpy as np
 import time
-from keras.datasets import mnist
+import numpy as np
 from sklearn.model_selection import StratifiedKFold
 from comp_rf import CompRF
 from utils import calc_accuracy
 
-if __name__ == "__main__":
-    (X_train, y_train), (X_test, y_test) = mnist.load_data()
+def trans(x):
+    for i in range(len(x)):
+        if x[i] == -1:
+            x[i] = 0
+    return x
+
+def main():
+    X_train = np.loadtxt('../datasets/gisette/gisette_train_data.txt')
+    y_train = np.loadtxt('../datasets/gisette/gisette_train_labels.txt', dtype=int)
+    X_test = np.loadtxt('../datasets/gisette/gisette_valid_data.txt')
+    y_test = np.loadtxt('../datasets/gisette/gisette_valid_labels.txt', dtype=int)
+    y_train = trans(y_train)
+    y_test = trans(y_test)
+    print(X_train.shape)
+    print(y_train.shape)
+    print(X_test.shape)
+    print(y_test.shape)
+
     X_train, y_train = X_train[:200], y_train[:200]
     X_test, y_test = X_test[:100], y_test[:100]
 
@@ -21,7 +36,7 @@ if __name__ == "__main__":
     n0_best = -1
     M_best = -1
     n_folds = 3     # requirement: 10
-    classes = 10
+    classes = 2
 
     # train: 
     # 10-fold CV
@@ -47,8 +62,6 @@ if __name__ == "__main__":
                 y_predict = comp_rf.train_then_predict(X_train[train_idx], y_train[train_idx], X_train[val_idx])
                 time_end = time.time()
 
-                # comp_rf.fit_transform(X_train[train_idx], y_train[train_idx])
-                # y_predict = comp_rf.predict(X_train[val_idx])
                 cur_accuracy = calc_accuracy(y_train[val_idx], y_predict)
 
                 cur_accuracy_list.append(cur_accuracy)
@@ -67,8 +80,9 @@ if __name__ == "__main__":
     # test:
     comp_rf = CompRF(n0_best, M_best, r)
     y_predict = comp_rf.train_then_predict(X_train, y_train, X_test)
-    # comp_rf.fit_transform(X_train, y_train)
-    # y_predict = comp_rf.predict(X_test)
     accuracy = calc_accuracy(y_test, y_predict)
 
     print("accuracy: ", accuracy)
+
+if __name__ == "__main__":
+    main()

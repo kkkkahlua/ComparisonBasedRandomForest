@@ -7,59 +7,17 @@ from utils import vote_for_one
 from utils import average
 
 class CompTree(object):
-    def __init__(self, n0):
+    def __init__(self, n0, kind):
         self.n0 = n0
         self.root = None
         self.task = "classification"
         self.depth = -1
         self.X = None
         self.y = None
+        self.kind = kind
+        self.leaf = 0
 
-
-
-    # def build_tree(self, X, y, depth):
-    #     if X.shape[0] <= self.n0:
-    #         self.depth = max(depth, depth)
-    #         return TreeNode(y, None, None, None, None, depth)
-
-    #     x0_idx, x1_idx = self.pick_two_samples(y)
-    #     x0 = X[x0_idx]
-    #     x1 = X[x1_idx]
-
-    #     left_idx, right_idx = self.separate_samples(X, x0, x1)
-
-    #     left_child = self.build_tree(X[left_idx], y[left_idx], depth+1)
-    #     right_child = self.build_tree(X[right_idx], y[right_idx], depth+1)
-
-    #     return TreeNode(None, x0, x1, left_child, right_child, depth)
-
-    # def pick_two_samples(self, y):
-    #     n_data = y.shape[0]
-
-    #     left_idx = [i for i in range(n_data) if y[i] == y[0]]
-    #     right_idx = [i for i in range(n_data) if i not in left_idx]
-
-    #     assert len(left_idx) + len(right_idx) == n_data
-
-    #     if not left_idx:
-    #         idx = random.sample(range(len(right_idx)), 2)
-    #         x0_idx = right_idx[idx[0]]
-    #         x1_idx = right_idx[idx[1]]
-    #     elif not right_idx:
-    #         idx = random.sample(range(len(left_idx)), 2)
-    #         x0_idx = left_idx[idx[0]]
-    #         x1_idx = left_idx[idx[1]]
-    #     else:
-    #         x0_idx = left_idx[random.randint(0, len(left_idx)-1)]
-    #         x1_idx = right_idx[random.randint(0, len(right_idx)-1)]
-    #     return x0_idx, x1_idx
-
-    def pick_two_samples(self, indice):
-        n_data = len(indice)
-        indice_0 = [idx for i, idx in enumerate(indice) if self.y[idx] == self.y[0]]
-        indice_1 = [idx for i, idx in enumerate(indice) if idx not in indice_0]
-        assert len(indice_0) + len(indice_1) == n_data
-        
+    def pick_two_samples(self, indice_0, indice_1):
         if not indice_0:
             idxes = random.sample(range(len(indice_1)), 2)
             idx_0, idx_1 = indice_1[idxes[0]], indice_1[idxes[1]]
@@ -71,37 +29,71 @@ class CompTree(object):
             idx_1 = indice_1[random.randint(0, len(indice_1)-1)]
         return idx_0, idx_1
 
-    # def separate_samples(self, X, x0, x1):
-    #     left_idx = [idx for idx, x in enumerate(X) if euc_dist(x, x0) <= euc_dist(x, x1)]
-    #     right_idx = [idx for idx in range(X.shape[0]) if idx not in left_idx]
-    #     return left_idx, right_idx
-
-    def separate_samples(self, indice, idx_0, idx_1):
-        left_idx = [idx for i, idx in enumerate(indice) if closer(self.X[idx], self.X[idx_0], self.X[idx_1])]
-        right_idx = [idx for i, idx in enumerate(indice) if idx not in left_idx]
-        return left_idx, right_idx
-
-    def build_tree(self, indice, depth):
-        if len(indice) <= self.n0:
-            self.depth = max(depth, self.depth)
-            if self.task == "classfication":
-                value = vote_for_one(self.y[indice])
+    def separate_samples(self, indice_0, indice_1, idx_0, idx_1):
+        left_idx_0, right_idx_0, left_idx_1, right_idx_1 = [], [], [], []
+        for idx in indice_0:
+            if closer(self.X[idx], self.X[idx_0], self.X[idx_1]):
+                left_idx_0.append(idx)
             else:
-                value = average(self.y[indice])
+                right_idx_0.append(idx)
+        for idx in indice_1:
+            if closer(self.X[idx], self.X[idx_0], self.X[idx_1]):
+                left_idx_1.append(idx)
+            else:
+                right_idx_1.append(idx)
+        # left_idx_0 = [idx for i, idx in enumerate(indice_0) if closer(self.X[idx], self.X[idx_0], self.X[idx_1])]
+        # right_idx_0 = [idx for i, idx in enumerate(indice_0) if idx not in left_idx_0]
+        # left_idx_1 = [idx for i, idx in enumerate(indice_1) if closer(self.X[idx], self.X[idx_0], self.X[idx_1])]
+        # right_idx_1 = [idx for i, idx in enumerate(indice_1) if idx not in left_idx_1]
+        # print(left_idx_0, len(left_idx_0))
+        # print(left_idx_1, len(left_idx_1))
+        # print(right_idx_0, len(right_idx_0))
+        # print(right_idx_1, len(right_idx_1))
+        return left_idx_0, left_idx_1, right_idx_0, right_idx_1
+
+    def build_binary_tree(self, indice_0, indice_1, depth):
+        self.depth = depth
+
+        if len(indice_0) + len(indice_1) <= self.n0:
+            # print(self.depth)
+            if self.task == "classfication":
+                value = vote_for_one(self.y[indice_0 + indice_1])
+            else:
+                value = average(self.y[indice_0 + indice_1])
             return TreeNode(value, None, None, None, None, depth)
         
-        idx_0, idx_1 = self.pick_two_samples(indice)
-        left_indice, right_indice = self.separate_samples(indice, idx_0, idx_1)
-
-        left_child = self.build_tree(left_indice, depth+1)
-        right_child = self.build_tree(right_indice, depth+1)
+        idx_0, idx_1 = self.pick_two_samples(indice_0, indice_1)
+        left_indice_0, left_indice_1, right_indice_0, right_indice_1 = self.separate_samples(indice_0, indice_1, idx_0, idx_1)
+        left_child = self.build_binary_tree(left_indice_0, left_indice_1, depth+1)
+        right_child = self.build_binary_tree(right_indice_0, right_indice_1, depth+1)
         return TreeNode(None, idx_0, idx_1, left_child, right_child, depth)
 
     def fit_transform(self, X, y):
         self.X = X
         self.y = y
-        self.root = self.build_tree(range(X.shape[0]), 0)
-        # self.root = self.build_tree(X, y, 0)
+
+        # print(y, len(y))
+
+        indice = range(X.shape[0])
+        n_data = len(indice)
+        # print('n_data = {0}'.format(n_data))
+        indice_0 = [idx for i, idx in enumerate(indice) if self.y[idx] == self.y[0]]
+        indice_1 = [idx for i, idx in enumerate(indice) if idx not in indice_0]
+        assert len(indice_0) + len(indice_1) == n_data
+
+        # print(indice_0, indice_1, len(indice_0), len(indice_1))
+
+        self.root = self.build_binary_tree(indice_0, indice_1, 0)
+        self.output_tree(self.root)
+
+    def output_tree(self, root):
+        if root is None:
+            return
+        if root.left_child is None and root.right_child is None:
+            self.leaf = self.leaf + 1
+            # print(root.depth, self.leaf)
+        self.output_tree(root.left_child)
+        self.output_tree(root.right_child)
 
     def trace_in_tree(self, x):
         node = self.root
